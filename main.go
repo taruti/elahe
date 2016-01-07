@@ -13,6 +13,7 @@ func gridAttachLabel(grid *gtk.Grid, name string, left, top int) error {
 	}
 	lab.SetMarginStart(2)
 	lab.SetMarginEnd(2)
+	lab.SetHAlign(gtk.ALIGN_END)
 	grid.Attach(lab, left, top, 1, 1)
 	return nil
 }
@@ -68,9 +69,12 @@ func createMainWindow() (*gtk.Window, error) {
 		return nil, err
 	}
 	grid.SetColumnSpacing(4)
-	err = gridAttachLabelEntry(grid, "Subject", 0, 0)
-	if err != nil {
-		return nil, err
+
+	for i, name := range []string{"Subject", "From", "To"} {
+		err = gridAttachLabelEntry(grid, name, 0, i)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	vbox.PackStart(grid, false, false, 2)
