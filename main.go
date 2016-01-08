@@ -25,6 +25,13 @@ func gridAttachEntry(grid *gtk.Grid, left, top int) error {
 	}
 	ent.SetHAlign(gtk.ALIGN_FILL)
 	ent.SetHExpand(true)
+	ent.Connect("activate", func() {
+		wdg, err := grid.GetChildAt(left, top+1)
+		if err!=nil {
+			return
+		}
+		wdg.GrabFocus()
+	})
 	grid.Attach(ent, left, top, 1, 1)
 	return nil
 }
