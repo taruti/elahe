@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/gotk3/gotk3/pango"
 )
 
 func gridAttachLabel(grid *gtk.Grid, name string, left, top int) error {
@@ -57,6 +58,12 @@ func createMainWindow() (*gtk.Window, error) {
 	if err != nil {
 		return nil, err
 	}
+	tte, err := gtk.TextTagNew("error")
+	if err != nil {
+		return nil, err
+	}
+	tte.SetProperty("underline", pango.UNDERLINE_ERROR)
+	ttt.Add(tte)
 	tbuf, err := gtk.TextBufferNew(ttt)
 	if err != nil {
 		return nil, err
