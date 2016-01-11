@@ -10,14 +10,14 @@ import (
 func loadSpellCheckers(languages ...string) []enchant.Dict {
 	brk, err := enchant.NewEnchant()
 	if err != nil {
-		log.Print("Failed to load enchant: %v", err)
+		log.Printf("Failed to load enchant: %v", err)
 		return nil
 	}
 	var ds []enchant.Dict
 	for _, l := range languages {
 		d, err := brk.LoadDict(l)
 		if err != nil {
-			log.Print("Failed to load dictionary for %q: %v", l, err)
+			log.Printf("Failed to load dictionary for %q: %v", l, err)
 			continue
 		}
 		ds = append(ds, d)
