@@ -64,10 +64,13 @@ func createMainWindow() (*gtk.Window, error) {
 	}
 	tte.SetProperty("underline", pango.UNDERLINE_ERROR)
 	ttt.Add(tte)
+
 	tbuf, err := gtk.TextBufferNew(ttt)
 	if err != nil {
 		return nil, err
 	}
+	tbuf.Connect("changed", func() { spellCheck(tbuf) })
+
 	tv, err := gtk.TextViewNewWithBuffer(tbuf)
 	if err != nil {
 		return nil, err
