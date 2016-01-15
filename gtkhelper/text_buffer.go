@@ -2,9 +2,11 @@ package gtkhelper
 
 // #cgo pkg-config: gtk+-3.0
 // #include <gtk/gtk.h>
+// #include <string.h>
 import "C"
 import (
 	"github.com/gotk3/gotk3/gtk"
+	"reflect"
 	"unsafe"
 )
 
@@ -20,6 +22,11 @@ func TextBufferRawSlice(tbuf *gtk.TextBuffer) *GChar {
 		gbool(true),
 	)
 	return (*GChar)(c)
+}
+
+func (ptr *GChar) String() string {
+	nbytes := int(C.strlen((*C.char)(ptr)))
+	return *(*string)(unsafe.Pointer(&reflect.StringHeader{Data:uintptr(unsafe.Pointer(ptr)), Len: nbytes}))
 }
 
 func (ptr *GChar) Free() {
