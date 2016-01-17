@@ -10,6 +10,25 @@ import (
 	"unsafe"
 )
 
+func TextIterForwardWordEnd(ti *gtk.TextIter) bool {
+	res := C.gtk_text_iter_forward_word_end((*C.GtkTextIter)(unsafe.Pointer(ti)))
+	return res == 1
+}
+func TextIterIsWordStart(ti *gtk.TextIter) bool {
+	return C.gtk_text_iter_starts_word((*C.GtkTextIter)(unsafe.Pointer(ti))) == 1
+}
+func TextIterForwardChar(ti *gtk.TextIter) bool {
+	return C.gtk_text_iter_forward_char((*C.GtkTextIter)(unsafe.Pointer(ti)))==1
+}
+func TextIterWordStart(ti *gtk.TextIter) bool {
+	for !TextIterIsWordStart(ti) {
+		if !TextIterForwardChar(ti) {
+			return false
+		}
+	}
+	return true
+}
+
 type GChar C.gchar
 
 func TextBufferRawSlice(tbuf *gtk.TextBuffer) *GChar {
@@ -26,7 +45,7 @@ func TextBufferRawSlice(tbuf *gtk.TextBuffer) *GChar {
 
 func (ptr *GChar) String() string {
 	nbytes := int(C.strlen((*C.char)(ptr)))
-	return *(*string)(unsafe.Pointer(&reflect.StringHeader{Data:uintptr(unsafe.Pointer(ptr)), Len: nbytes}))
+	return *(*string)(unsafe.Pointer(&reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: nbytes}))
 }
 
 func (ptr *GChar) Free() {
