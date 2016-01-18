@@ -69,7 +69,7 @@ func createMainWindow() (*gtk.Window, error) {
 	if err != nil {
 		return nil, err
 	}
-	tbuf.Connect("changed", func() { spellCheck(tbuf) })
+	tbuf.Connect("changed", func() { spellCheck(tbuf, tte) })
 
 	tv, err := gtk.TextViewNewWithBuffer(tbuf)
 	if err != nil {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"unicode"
 
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/taruti/elahe/gtkhelper"
@@ -31,39 +30,59 @@ func loadSpellCheckers(languages ...string) []enchant.Dict {
 
 // spellCheck is called only from the main gtk thread - thus no concurrency protection
 // needed.
-func spellCheck(tb *gtk.TextBuffer) {
+func spellCheck(tb *gtk.TextBuffer, ttt *gtk.TextTag) {
 	log.Println("Spellcheck begin")
-	gptr := gtkhelper.TextBufferRawSlice(tb)
-	if gptr == nil {
-		return
-	}
-	defer gptr.Free()
-
-	str := gptr.String()
-	if str == "" {
+	if len(dictionaries)==0 {
 		return
 	}
 
-	// Eat leading non-letters
-	for idx, ch := range str {
-		if unicode.IsLetter(ch) {
-			str = str[idx:]
+	i0 := tb.GetStartIter()
+	i1 := tb.GetStartIter()
+	idx := 0
+	stats := make([]int32, len(dictionaries))
+	for gtkhelper.TextIterWordStart(i0) && gtkhelper.TextIterForwardWordEnd(i1) {
+		word,err := tb.GetText(i0, i1, true)
+		if err!=nil {
+			log.Println("GetText:",err)
+			return
+		}
+		for i,d := range dictionaries {
+			if d.Check(word) {
+				stats[i]++
+			}
+		}
+		// Only handle first chars when trying to determine language
+		idx++
+		if idx >= 32 {
 			break
 		}
+		gtkhelper.TextIterForwardChar(i0)
 	}
-
-	start := 0
-	for idx, ch := range str {
-		if !unicode.IsLetter(ch) {
-			if start >= 0 {
-				spellWord(str[start:idx])
-				start = -1
-			}
-		} else if(start < 0) {
-			start = idx
+	best := 0
+	for i,v := range stats[1:] {
+		if v > stats[best] {
+			best = i+1
 		}
 	}
-	// Skip trailing words by purpose
+	dict := dictionaries[best]
+	log.Println("stats", stats, "=>",best)
+
+	// Remove all existing tags
+	tb.RemoveTag(ttt, tb.GetStartIter(), tb.GetEndIter())
+
+	i0 = tb.GetStartIter()
+	i1 = tb.GetStartIter()
+	for gtkhelper.TextIterWordStart(i0) && gtkhelper.TextIterForwardWordEnd(i1) {
+		word,err := tb.GetText(i0, i1, true)
+		if err!=nil {
+			log.Println("GetText:",err)
+			return
+		}
+		if !dict.Check(word) {
+			tb.ApplyTag(ttt, i0, i1)
+		}
+		gtkhelper.TextIterForwardChar(i0)
+	}
 }
 
 func spellWord(word string) {
