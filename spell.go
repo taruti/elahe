@@ -31,7 +31,6 @@ func loadSpellCheckers(languages ...string) []enchant.Dict {
 // spellCheck is called only from the main gtk thread - thus no concurrency protection
 // needed.
 func spellCheck(tb *gtk.TextBuffer, ttt *gtk.TextTag) {
-	log.Println("Spellcheck begin")
 	if len(dictionaries)==0 {
 		return
 	}
@@ -65,7 +64,6 @@ func spellCheck(tb *gtk.TextBuffer, ttt *gtk.TextTag) {
 		}
 	}
 	dict := dictionaries[best]
-	log.Println("stats", stats, "=>",best)
 
 	// Remove all existing tags
 	tb.RemoveTag(ttt, tb.GetStartIter(), tb.GetEndIter())
