@@ -45,15 +45,7 @@ func gridAttachLabelEntry(grid *gtk.Grid, name string, left, top int) error {
 	return gridAttachEntry(grid, left+1, top)
 }
 
-func createMainWindow() (*gtk.Window, error) {
-	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-	if err != nil {
-		return nil, err
-	}
-	win.Connect("destroy", func() {
-		gtk.MainQuit()
-	})
-
+func createMainTextView() (*gtk.TextView, error) {
 	ttt, err := gtk.TextTagTableNew()
 	if err != nil {
 		return nil, err
@@ -72,6 +64,19 @@ func createMainWindow() (*gtk.Window, error) {
 	tbuf.Connect("changed", func() { spellCheck(tbuf, tte) })
 
 	tv, err := gtk.TextViewNewWithBuffer(tbuf)
+	return tv,err
+}
+
+func createMainWindow() (*gtk.Window, error) {
+	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	if err != nil {
+		return nil, err
+	}
+	win.Connect("destroy", func() {
+		gtk.MainQuit()
+	})
+
+	tv, err := createMainTextView()
 	if err != nil {
 		return nil, err
 	}
