@@ -28,7 +28,7 @@ func gridAttachEntry(grid *gtk.Grid, left, top int) error {
 	ent.SetHExpand(true)
 	ent.Connect("activate", func() {
 		wdg, err := grid.GetChildAt(left, top+1)
-		if err!=nil {
+		if err != nil {
 			return
 		}
 		wdg.GrabFocus()
@@ -64,7 +64,7 @@ func createMainTextView() (*gtk.TextView, error) {
 	tbuf.Connect("changed", func() { spellCheck(tbuf, tte) })
 
 	tv, err := gtk.TextViewNewWithBuffer(tbuf)
-	return tv,err
+	return tv, err
 }
 
 func createMainWindow() (*gtk.Window, error) {
