@@ -5,7 +5,17 @@ import (
 
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/gotk3/gotk3/pango"
+	"github.com/taruti/elahe/gtkhelper"
 )
+
+var (
+	errorTextTag *gtk.TextTag
+)
+
+type ComposeWin struct {
+	textBuf *gtk.TextBuffer
+	overlay *gtkhelper.OverlayWithSpinner
+}
 
 func gridAttachLabel(grid *gtk.Grid, name string, left, top int) error {
 	lab, err := gtk.LabelNew(name)
@@ -45,29 +55,33 @@ func gridAttachLabelEntry(grid *gtk.Grid, name string, left, top int) error {
 	return gridAttachEntry(grid, left+1, top)
 }
 
-func createMainTextView() (*gtk.TextView, error) {
+func createMainTextView(cw *ComposeWin) (*gtk.TextView, error) {
 	ttt, err := gtk.TextTagTableNew()
 	if err != nil {
 		return nil, err
 	}
-	tte, err := gtk.TextTagNew("error")
-	if err != nil {
-		return nil, err
-	}
-	tte.SetProperty("underline", pango.UNDERLINE_ERROR)
-	ttt.Add(tte)
+	ttt.Add(errorTextTag)
 
 	tbuf, err := gtk.TextBufferNew(ttt)
 	if err != nil {
 		return nil, err
 	}
-	tbuf.Connect("changed", func() { spellCheck(tbuf, tte) })
+	cw.textBuf = tbuf
+	tbuf.Connect("changed", cw.spellCheck)
 
 	tv, err := gtk.TextViewNewWithBuffer(tbuf)
 	return tv, err
 }
 
 func createMainWindow() (*gtk.Window, error) {
+	var err error
+
+	errorTextTag, err = gtk.TextTagNew("error")
+	if err != nil {
+		return nil, err
+	}
+	errorTextTag.SetProperty("underline", pango.UNDERLINE_ERROR)
+
 	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
 	if err != nil {
 		return nil, err
@@ -76,7 +90,9 @@ func createMainWindow() (*gtk.Window, error) {
 		gtk.MainQuit()
 	})
 
-	tv, err := createMainTextView()
+	cw := &ComposeWin{}
+
+	tv, err := createMainTextView(cw)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +117,14 @@ func createMainWindow() (*gtk.Window, error) {
 
 	vbox.PackStart(grid, false, false, 2)
 
-	win.Add(vbox)
+	ov, err := gtkhelper.NewOverlayWithSpinner()
+	if err != nil {
+		return nil, err
+	}
+	ov.Add(vbox)
+	cw.overlay = ov
+
+	win.Add(&ov.Container.Widget)
 	return win, nil
 }
 

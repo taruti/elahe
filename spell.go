@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/taruti/elahe/gtkhelper"
 	"github.com/taruti/enchant"
 )
@@ -30,22 +29,22 @@ func loadSpellCheckers(languages ...string) []enchant.Dict {
 
 // spellCheck is called only from the main gtk thread - thus no concurrency protection
 // needed.
-func spellCheck(tb *gtk.TextBuffer, ttt *gtk.TextTag) {
-	if len(dictionaries)==0 {
+func (cw *ComposeWin) spellCheck() {
+	if len(dictionaries) == 0 {
 		return
 	}
 
-	i0 := tb.GetStartIter()
-	i1 := tb.GetStartIter()
+	i0 := cw.textBuf.GetStartIter()
+	i1 := cw.textBuf.GetStartIter()
 	idx := 0
 	stats := make([]int32, len(dictionaries))
 	for gtkhelper.TextIterWordStart(i0) && gtkhelper.TextIterForwardWordEnd(i1) {
-		word,err := tb.GetText(i0, i1, true)
-		if err!=nil {
-			log.Println("GetText:",err)
+		word, err := cw.textBuf.GetText(i0, i1, true)
+		if err != nil {
+			log.Println("GetText:", err)
 			return
 		}
-		for i,d := range dictionaries {
+		for i, d := range dictionaries {
 			if d.Check(word) {
 				stats[i]++
 			}
@@ -58,31 +57,27 @@ func spellCheck(tb *gtk.TextBuffer, ttt *gtk.TextTag) {
 		gtkhelper.TextIterForwardChar(i0)
 	}
 	best := 0
-	for i,v := range stats[1:] {
+	for i, v := range stats[1:] {
 		if v > stats[best] {
-			best = i+1
+			best = i + 1
 		}
 	}
 	dict := dictionaries[best]
 
 	// Remove all existing tags
-	tb.RemoveTag(ttt, tb.GetStartIter(), tb.GetEndIter())
+	cw.textBuf.RemoveTag(errorTextTag, cw.textBuf.GetStartIter(), cw.textBuf.GetEndIter())
 
-	i0 = tb.GetStartIter()
-	i1 = tb.GetStartIter()
+	i0 = cw.textBuf.GetStartIter()
+	i1 = cw.textBuf.GetStartIter()
 	for gtkhelper.TextIterWordStart(i0) && gtkhelper.TextIterForwardWordEnd(i1) {
-		word,err := tb.GetText(i0, i1, true)
-		if err!=nil {
-			log.Println("GetText:",err)
+		word, err := cw.textBuf.GetText(i0, i1, true)
+		if err != nil {
+			log.Println("GetText:", err)
 			return
 		}
 		if !dict.Check(word) {
-			tb.ApplyTag(ttt, i0, i1)
+			cw.textBuf.ApplyTag(errorTextTag, i0, i1)
 		}
 		gtkhelper.TextIterForwardChar(i0)
 	}
-}
-
-func spellWord(word string) {
-	log.Println("word", word)
 }
