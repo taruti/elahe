@@ -29,30 +29,24 @@ func gridAttachLabel(grid *gtk.Grid, name string, left, top int) error {
 	return nil
 }
 
-func gridAttachEntry(grid *gtk.Grid, left, top int) error {
+func gridAttachEntry(grid *gtk.Grid, left, top int, fun func()) error {
 	ent, err := gtk.EntryNew()
 	if err != nil {
 		return err
 	}
 	ent.SetHAlign(gtk.ALIGN_FILL)
 	ent.SetHExpand(true)
-	ent.Connect("activate", func() {
-		wdg, err := grid.GetChildAt(left, top+1)
-		if err != nil {
-			return
-		}
-		wdg.GrabFocus()
-	})
+	ent.Connect("activate", fun)
 	grid.Attach(ent, left, top, 1, 1)
 	return nil
 }
 
-func gridAttachLabelEntry(grid *gtk.Grid, name string, left, top int) error {
+func gridAttachLabelEntry(grid *gtk.Grid, name string, left, top int, fun func()) error {
 	err := gridAttachLabel(grid, name, left, top)
 	if err != nil {
 		return err
 	}
-	return gridAttachEntry(grid, left+1, top)
+	return gridAttachEntry(grid, left+1, top, fun)
 }
 
 func createMainTextView(cw *ComposeWin) (*gtk.TextView, error) {
@@ -109,7 +103,16 @@ func createMainWindow() (*gtk.Window, error) {
 	grid.SetColumnSpacing(4)
 
 	for i, name := range []string{"Subject", "From", "To"} {
-		err = gridAttachLabelEntry(grid, name, 0, i)
+		i := i
+		fun := func() {
+			wdg, err := grid.GetChildAt(1, i+1)
+			if err != nil {
+				cw.overlay.StartSpin()
+				return
+			}
+			wdg.GrabFocus()
+		}
+		err = gridAttachLabelEntry(grid, name, 0, i, fun)
 		if err != nil {
 			return nil, err
 		}
