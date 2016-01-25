@@ -50,10 +50,10 @@ func (cw *ComposeWin) spellCheck() {
 			}
 		}
 		// Only handle first chars when trying to determine language
-		idx++
-		if idx >= 32 {
+		if idx >= 31 {
 			break
 		}
+		idx++
 		gtkhelper.TextIterForwardChar(i0)
 	}
 	best := 0
