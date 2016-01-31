@@ -7,7 +7,7 @@ import (
 	"github.com/taruti/enchant"
 )
 
-var dictionaries = loadSpellCheckers("en_US", "fi")
+var dictionaries = loadSpellCheckers("en_US", "fi", "sv")
 
 func loadSpellCheckers(languages ...string) []enchant.Dict {
 	brk, err := enchant.NewEnchant()
